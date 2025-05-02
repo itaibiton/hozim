@@ -1,24 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hozim
 
-## Getting Started
+A modern web application built with Next.js, React, and TypeScript.
 
-First, run the development server:
+## 🚀 Features
 
+- Built with Next.js 15 and React 19
+- TypeScript for type safety
+- Tailwind CSS for styling
+- Dark mode support with next-themes
+- Modern UI components with Radix UI
+- Date handling with date-fns
+- Toast notifications with Sonner
+- Form handling with React Hook Form
+- Calendar component with react-day-picker
+
+## 🛠️ Tech Stack
+
+- **Framework:** [Next.js](https://nextjs.org/)
+- **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+- **UI Components:** [Radix UI](https://www.radix-ui.com/)
+- **Icons:** [Lucide React](https://lucide.dev/)
+- **Date Handling:** [date-fns](https://date-fns.org/)
+- **Notifications:** [Sonner](https://sonner.emilkowal.ski/)
+
+## 📦 Getting Started
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/hozim.git
+cd hozim
+```
+
+2. Install dependencies:
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+```
+
+3. Run the development server:
 ```bash
 npm run dev
 # or
 yarn dev
 # or
 pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🏗️ Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+hozim/
+├── app/              # Next.js app directory
+├── components/       # Reusable React components
+├── lib/             # Utility functions and configurations
+├── public/          # Static assets
+└── styles/          # Global styles and Tailwind configuration
+```
+
+## 📝 Scripts
+
+- `npm run dev` - Start development server with Turbopack
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+
+## 🔧 Configuration
+
+- `next.config.ts` - Next.js configuration
+- `tsconfig.json` - TypeScript configuration
+- `tailwind.config.js` - Tailwind CSS configuration
+- `postcss.config.mjs` - PostCSS configuration
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Learn More
 
