@@ -19,6 +19,13 @@
             "env": {
                 "REGISTRY_URL": "https://tweakcn.com/r/themes/registry.json"
             }
+        },
+        "sequential-thinking": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-sequential-thinking"
+            ]
         }
     }
 }

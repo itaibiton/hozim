@@ -22,9 +22,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     if (!mounted) return null
 
     return (
-        <div className="h-screen bg-background">
+        <div className="h-screen bg-background relative">
             <Navbar />
-            <main className="w-full container mx-auto py-8 px-4 lg:px-0">
+            <main className="w-full container mx-auto px-4 lg:px-0 relative z-0 pt-24 pb-4">
                 {children}
             </main>
             <Toaster />
