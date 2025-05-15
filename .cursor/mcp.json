@@ -8,6 +8,17 @@
                 "--access-token",
                 "sbp_1af1452911379c58c98b533523b43c04b5eebad2"
             ]
+        },
+        "shadcn": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "shadcn@canary",
+                "registry:mcp"
+            ],
+            "env": {
+                "REGISTRY_URL": "https://tweakcn.com/r/themes/registry.json"
+            }
         }
     }
 }
