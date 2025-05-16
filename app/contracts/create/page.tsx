@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input';
 import { contractCategories, contractTemplates } from '@/lib/contracts';
 import { Search, ArrowRight, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { AnimatePresence, motion } from 'framer-motion';
+
 export default function Page() {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -66,31 +68,40 @@ export default function Page() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredTemplates.map((template) => (
-                    <Card
-                        className="overflow-hidden  hover:border-primary transition-all duration-200"
-                        key={template.id}
-
-                    // onClick={() => handleSelectTemplate(template.id)}
-                    >
-                        <CardHeader>
-                            <div className="text-3xl mb-2">{template.thumbnail}</div>
-                            <CardTitle className="text-lg">{template.title}</CardTitle>
-                            <CardDescription>{template.description}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Link
-                                href={`/contracts/${template.id}`}
+                <AnimatePresence mode="popLayout">
+                    {filteredTemplates.map((template) => (
+                        <motion.div
+                            key={template.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.25 }}
+                            layout
+                        >
+                            <Card
+                                className="overflow-hidden  hover:border-primary transition-all duration-200"
+                                key={template.id}
+                            // onClick={() => handleSelectTemplate(template.id)}
                             >
-                                <Button className="w-full cursor-pointer">
-                                    התחל עריכה
-                                    <ArrowLeft className="h-4 w-4 me-2" />
-                                </Button>
-                            </Link>
-                        </CardContent>
-                    </Card>
-
-                ))}
+                                <CardHeader>
+                                    <div className="text-3xl mb-2">{template.thumbnail}</div>
+                                    <CardTitle className="text-lg">{template.title}</CardTitle>
+                                    <CardDescription>{template.description}</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <Link
+                                        href={`/contracts/${template.id}`}
+                                    >
+                                        <Button className="w-full cursor-pointer">
+                                            התחל עריכה
+                                            <ArrowLeft className="h-4 w-4 me-2" />
+                                        </Button>
+                                    </Link>
+                                </CardContent>
+                            </Card>
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
 
                 {filteredTemplates.length === 0 && (
                     <div className="col-span-full py-12 text-center">

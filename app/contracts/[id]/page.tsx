@@ -11,7 +11,7 @@ import Link from 'next/link';
 import ContractEditor from '@/components/contracts/ContractEditor';
 import { format } from 'date-fns';
 import { Drawer, DrawerClose, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
-import { DialogTitle } from '@radix-ui/react-dialog';
+import { DialogTitle, DialogDescription } from '@radix-ui/react-dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
@@ -19,6 +19,23 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import parse, { domToReact } from 'html-react-parser';
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem
+} from '@/components/ui/dropdown-menu';
+import {
+    Tooltip,
+    TooltipTrigger,
+    TooltipContent
+} from '@/components/ui/tooltip';
+import {
+    Dialog,
+    DialogTrigger,
+    DialogContent,
+    DialogClose,
+} from '@/components/ui/dialog';
 
 
 const ContractView: React.FC = () => {
@@ -27,12 +44,15 @@ const ContractView: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [editMode, setEditMode] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [exportDrawerOpen, setExportDrawerOpen] = useState(false);
 
     // Lifted state for form values and rendered HTML
     const [formValues, setFormValues] = useState<Record<string, string | Date>>({});
     const [renderedHtml, setRenderedHtml] = useState<string>('');
     const [editingField, setEditingField] = useState<string | null>(null);
     const [editingValue, setEditingValue] = useState<string>('');
+    const [unsavedFormValues, setUnsavedFormValues] = useState<Record<string, string | Date> | null>(null);
+    const [showCancelDialog, setShowCancelDialog] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -174,6 +194,30 @@ const ContractView: React.FC = () => {
         }, 1500);
     };
 
+    // Desktop edit/save/cancel logic
+    const handleDesktopEdit = () => {
+        setUnsavedFormValues({ ...formValues });
+        setEditMode(true);
+    };
+    const handleDesktopSave = () => {
+        if (unsavedFormValues) {
+            setFormValues({ ...unsavedFormValues });
+        }
+        setEditMode(false);
+        setUnsavedFormValues(null);
+    };
+    const handleDesktopCancel = () => {
+        setShowCancelDialog(true);
+    };
+    const confirmCancel = () => {
+        setEditMode(false);
+        setUnsavedFormValues(null);
+        setShowCancelDialog(false);
+    };
+    const cancelCancel = () => {
+        setShowCancelDialog(false);
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-[60vh]">
@@ -204,10 +248,19 @@ const ContractView: React.FC = () => {
                 <div className="flex gap-3">
                     {/* Edit button for mobile (Drawer) */}
                     <div className="block lg:hidden">
-                        <Drawer>
+                        <Drawer
+                            open={drawerOpen}
+                            onOpenChange={(open) => {
+                                setDrawerOpen(open);
+                                if (!open) setEditMode(false);
+                            }}
+                        >
                             <DialogTitle></DialogTitle>
                             <DrawerTrigger asChild>
-                                <Button onClick={() => setEditMode((v) => !v)}>
+                                <Button onClick={() => {
+                                    setEditMode(true);
+                                    setDrawerOpen(true);
+                                }}>
                                     עריכה
                                     <Edit className="h-4 w-4" />
                                 </Button>
@@ -219,16 +272,94 @@ const ContractView: React.FC = () => {
                             </DrawerContent>
                         </Drawer>
                     </div>
+                    {/* Export Drawer for mobile */}
+                    <div className="block lg:hidden">
+                        <Drawer
+                            open={exportDrawerOpen}
+                            onOpenChange={setExportDrawerOpen}
+                        >
+                            <DialogTitle></DialogTitle>
+                            <DrawerTrigger asChild>
+                                <Button variant="outline" onClick={() => setExportDrawerOpen(true)} disabled={editMode}>
+                                    ייצוא
+                                    <Download className="h-4 w-4" />
+                                </Button>
+                            </DrawerTrigger>
+                            <DrawerContent>
+                                <div className="mx-auto w-full max-w-sm flex flex-col gap-4 p-6">
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                            handleExportDOCX();
+                                            setExportDrawerOpen(false);
+                                        }}
+                                        className="w-full"
+                                    >
+                                        ייצא ל-DOCX
+                                        <Download className="h-4 w-4 ml-2" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                            handleExportPDF();
+                                            setExportDrawerOpen(false);
+                                        }}
+                                        className="w-full"
+                                    >
+                                        ייצא ל-PDF
+                                        <Download className="h-4 w-4 ml-2" />
+                                    </Button>
+                                </div>
+                            </DrawerContent>
+                        </Drawer>
+                    </div>
+                    {/* Export Dropdown for desktop */}
+                    <div className="hidden lg:block">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <span>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="outline" disabled={editMode}>
+                                                ייצוא
+                                                <Download className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={handleExportDOCX} className="gap-2">
+                                                <Download className="h-4 w-4" /> ייצא ל-DOCX
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={handleExportPDF} className="gap-2">
+                                                <Download className="h-4 w-4" /> ייצא ל-PDF
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </span>
+                            </TooltipTrigger>
+                            {editMode && (
+                                <TooltipContent side="bottom" variant="destructive">
+                                    לא ניתן לייצא בזמן עריכה
+                                </TooltipContent>
+                            )}
+                        </Tooltip>
+                    </div>
                     {/* Edit button for desktop (side panel) */}
                     <div className="hidden lg:flex gap-3">
-                        <Button onClick={() => setEditMode((v) => !v)}>
-                            {editMode ? 'שמור' : 'עריכה'}
-                            {editMode ? <Save className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
-                        </Button>
-                        {editMode && (
-                            <Button onClick={() => setEditMode((v) => !v)} variant="destructive">
-                                ביטול
-                                <X className="h-4 w-4" />
+                        {editMode ? (
+                            <>
+                                <Button onClick={handleDesktopSave}>
+                                    שמור
+                                    <Save className="h-4 w-4" />
+                                </Button>
+                                <Button onClick={handleDesktopCancel} variant="destructive">
+                                    ביטול
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </>
+                        ) : (
+                            <Button onClick={handleDesktopEdit}>
+                                עריכה
+                                <Edit className="h-4 w-4" />
                             </Button>
                         )}
                     </div>
@@ -242,16 +373,7 @@ const ContractView: React.FC = () => {
                         <div className="a4-page mb-8">
                             {renderContractHtml()}
                         </div>
-                        <div className="flex justify-center gap-4 mb-8">
-                            <Button variant="outline" onClick={handleExportDOCX}>
-                                ייצא ל-DOCX
-                                <Download className="h-4 w-4" />
-                            </Button>
-                            <Button variant="default" onClick={handleExportPDF}>
-                                ייצא ל-PDF
-                                <Download className="h-4 w-4" />
-                            </Button>
-                        </div>
+
                     </div>
                 </div>
                 {/* Editor panel: desktop only */}
@@ -261,9 +383,32 @@ const ContractView: React.FC = () => {
                     `}
                     style={{ maxWidth: editMode ? '50%' : 0 }}
                 >
-                    {editMode && <ContractEditor contract={contract} id={id} onClose={() => setEditMode(false)} formValues={formValues} setFormValues={setFormValues} />}
+                    {editMode && (
+                        <ContractEditor
+                            contract={contract}
+                            id={id}
+                            onClose={() => setEditMode(false)}
+                            formValues={unsavedFormValues || {}}
+                            setFormValues={setUnsavedFormValues as React.Dispatch<React.SetStateAction<Record<string, string | Date>>>}
+                        />
+                    )}
                 </div>
             </div>
+            {/* Confirmation Dialog */}
+            <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+                <DialogContent>
+                    <DialogTitle>לבטל שינויים?</DialogTitle>
+                    <DialogDescription>
+                        כל השינויים שביצעת בעריכה זו יאבדו. האם אתה בטוח שברצונך לבטל?
+                    </DialogDescription>
+                    <div className="flex gap-2 justify-end mt-4">
+                        <DialogClose asChild>
+                            <Button variant="outline" onClick={cancelCancel}>המשך עריכה</Button>
+                        </DialogClose>
+                        <Button variant="destructive" onClick={confirmCancel}>בטל שינויים</Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

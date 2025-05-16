@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import type { ContractField, ContractTemplate } from '@/lib/contracts';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface ContractEditorProps {
     contract: ContractTemplate;
@@ -151,15 +152,26 @@ const ContractEditor: React.FC<ContractEditorProps> = ({ contract, id, onClose, 
                 <div className="bg-card rounded-lg border shadow-sm p-4 mb-4">
                     <h2 className="text-xl font-medium mb-6">פרטי החוזה</h2>
                     <div className="space-y-6">
-                        {pagedFields.map((field) => (
-                            <div key={field.id} className="space-y-2">
-                                <Label htmlFor={field.id}>
-                                    {field.label}
-                                    {field.required && <span className="text-destructive mr-1">*</span>}
-                                </Label>
-                                {renderField(field)}
-                            </div>
-                        ))}
+                        <AnimatePresence mode="popLayout">
+                            {pagedFields.map((field) => (
+                                <motion.div
+                                    key={field.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    transition={{ duration: 0.25 }}
+                                    layout
+                                >
+                                    <div className="space-y-2">
+                                        <Label htmlFor={field.id}>
+                                            {field.label}
+                                            {field.required && <span className="text-destructive mr-1">*</span>}
+                                        </Label>
+                                        {renderField(field)}
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
                     </div>
                     {/* Pagination controls */}
                     {totalPages > 1 && (
