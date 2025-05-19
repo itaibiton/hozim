@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import {
     FileText,
@@ -21,22 +21,43 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { supabase } from '@/lib/supabaseClient';
+import AuthForm from '@/components/auth/AuthForm';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { DialogTitle } from '@radix-ui/react-dialog';
 
-// Mock authentication state - replace with your auth logic
-const useAuth = () => {
-    // Replace with your actual auth state
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const user = isAuthenticated ? { name: 'משתמש שם', email: 'user@example.com', avatarUrl: '' } : null;
+// Real authentication hook using Supabase
+function useSupabaseAuth() {
+    const [user, setUser] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
-    const login = () => setIsAuthenticated(true);
-    const logout = () => setIsAuthenticated(false);
+    useEffect(() => {
+        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+            setLoading(false);
+        });
+        // Get initial session
+        supabase.auth.getSession().then(({ data }) => {
+            setUser(data.session?.user ?? null);
+            setLoading(false);
+        });
+        return () => {
+            listener.subscription.unsubscribe();
+        };
+    }, []);
 
-    return { isAuthenticated, user, login, logout };
-};
+    const logout = async () => {
+        await supabase.auth.signOut();
+        setUser(null);
+    };
+
+    return { user, isAuthenticated: !!user, logout, loading };
+}
 
 const Navbar: React.FC = () => {
     const pathname = usePathname();
-    const { isAuthenticated, user, login, logout } = useAuth();
+    const { isAuthenticated, user, logout, loading } = useSupabaseAuth();
+    const [authOpen, setAuthOpen] = useState(false);
 
     return (
         <header className="border-b border-border flex fixed top-0 left-0 w-full z-10 backdrop-blur-sm bg-background/80 ">
@@ -80,15 +101,14 @@ const Navbar: React.FC = () => {
                                     variant={"ghost"}
                                     className="relative"
                                 >
-                                    בוקר טוב, איתי
+                                    שלום, {user?.email?.split('@')[0] || 'משתמש'}
                                     <User className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-56">
                                 <div className="flex items-center justify-start gap-2 p-2">
                                     <div className="flex flex-col space-y-1 leading-none">
-                                        <p className="font-medium">{user?.name}</p>
-                                        <p className="text-xs text-muted-foreground">{user?.email}</p>
+                                        <p className="font-medium">{user?.email}</p>
                                     </div>
                                 </div>
                                 <DropdownMenuSeparator />
@@ -116,7 +136,7 @@ const Navbar: React.FC = () => {
                         </DropdownMenu>
                     ) : (
                         <div className="flex items-center gap-2">
-                            <Button variant="outline" onClick={login}>
+                            <Button variant="outline" onClick={() => setAuthOpen(true)}>
                                 התחברות <UserPlus className="h-4 w-4" />
                             </Button>
                         </div>
@@ -128,9 +148,9 @@ const Navbar: React.FC = () => {
                     {isAuthenticated && (
                         <Button variant="ghost" className="relative h-8 w-8 rounded-full mr-2">
                             <Avatar className="h-8 w-8">
-                                <AvatarImage src={user?.avatarUrl} alt={user?.name} />
+                                <AvatarImage src={user?.avatar_url} alt={user?.email} />
                                 <AvatarFallback className="bg-primary/10 text-primary">
-                                    {user?.name?.substring(0, 2) || "מש"}
+                                    {user?.email?.substring(0, 2) || "מש"}
                                 </AvatarFallback>
                             </Avatar>
                         </Button>
@@ -156,22 +176,21 @@ const Navbar: React.FC = () => {
                                     {isAuthenticated ? (
                                         <div className="flex items-center gap-4 pt-4">
                                             <Avatar className="h-10 w-10">
-                                                <AvatarImage src={user?.avatarUrl} alt={user?.name} />
+                                                <AvatarImage src={user?.avatar_url} alt={user?.email} />
                                                 <AvatarFallback className="bg-primary/10 text-primary">
-                                                    {user?.name?.substring(0, 2) || "מש"}
+                                                    {user?.email?.substring(0, 2) || "מש"}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <div>
-                                                <p className="font-medium">{user?.name}</p>
-                                                <p className="text-xs text-muted-foreground">{user?.email}</p>
+                                                <p className="font-medium">{user?.email}</p>
                                             </div>
                                         </div>
                                     ) : (
                                         <div className="flex flex-col gap-2 pt-4">
-                                            <Button className="w-full" onClick={login}>
+                                            <Button className="w-full" onClick={() => setAuthOpen(true)}>
                                                 הרשמה
                                             </Button>
-                                            <Button variant="outline" className="w-full" onClick={login}>
+                                            <Button variant="outline" className="w-full" onClick={() => setAuthOpen(true)}>
                                                 כניסה
                                             </Button>
                                         </div>
@@ -236,6 +255,13 @@ const Navbar: React.FC = () => {
                     </Sheet>
                 </div>
             </div>
+            {/* Auth Modal */}
+            <Dialog open={authOpen} onOpenChange={setAuthOpen}>
+                <DialogContent className="max-w-sm w-full p-0 bg-background border-none shadow-none">
+                    <DialogTitle></DialogTitle>
+                    <AuthForm onAuthSuccess={() => setAuthOpen(false)} />
+                </DialogContent>
+            </Dialog>
         </header>
     );
 };
