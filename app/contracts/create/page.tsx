@@ -79,7 +79,7 @@ export default function Page() {
                             layout
                         >
                             <Card
-                                className="overflow-hidden  hover:border-primary transition-all duration-200"
+                                className="overflow-hidden border hover:bg-primary/10 border-primary/15 transition-all duration-200 p-8"
                                 key={template.id}
                             // onClick={() => handleSelectTemplate(template.id)}
                             >
